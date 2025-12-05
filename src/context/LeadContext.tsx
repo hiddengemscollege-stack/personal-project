@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { supabase } from '../lib/supabase';
 
 interface LeadContextType {
     isAuthModalOpen: boolean;
@@ -15,7 +16,7 @@ interface LeadProviderProps {
 }
 
 export function LeadProvider({ children }: LeadProviderProps) {
-    const { user } = useAuth();
+    const { user, logSessionActivity } = useAuth();
     const [viewedColleges, setViewedColleges] = useState<string[]>([]);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [pendingAction, setPendingAction] = useState<{ callback: () => void } | null>(null);
@@ -45,6 +46,22 @@ export function LeadProvider({ children }: LeadProviderProps) {
     const checkAccess = (action: 'view' | 'enquire', callback: () => void, collegeId?: string) => {
         // If user is logged in via Supabase, they have unlimited access
         if (user) {
+            if (action === 'view' && collegeId) {
+                // Record view activity to user_activity (Master Log)
+                supabase.from('user_activity').insert({
+                    user_id: user.id,
+                    action_type: 'view_college',
+                    details: { college_id: collegeId }
+                }).then(({ error }) => {
+                    if (error) console.error('Error recording view:', error);
+                });
+
+                // Record view activity to login_history (Session Log)
+                logSessionActivity({
+                    type: 'view_college',
+                    college_id: collegeId
+                });
+            }
             callback();
             return;
         }

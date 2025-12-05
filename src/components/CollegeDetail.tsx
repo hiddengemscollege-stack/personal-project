@@ -6,6 +6,7 @@ import { MapPin, GraduationCap, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { COLLEGE_DETAILS } from '../data/collegeDetails';
 import { trackEvent } from '../lib/analytics';
+import { useAuth } from '../context/AuthContext';
 
 interface CollegeDetailProps {
   onNavigate: (page: Page) => void;
@@ -14,6 +15,7 @@ interface CollegeDetailProps {
 }
 
 export function CollegeDetail({ onNavigate, onBack, collegeId }: CollegeDetailProps) {
+  const { logSessionActivity } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'facilities' | 'placements'>('overview');
   const [formData, setFormData] = useState({
     name: '',
@@ -59,6 +61,13 @@ export function CollegeDetail({ onNavigate, onBack, collegeId }: CollegeDetailPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Strict 10-digit phone validation
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      alert('Please enter a valid 10-digit phone number.');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('student_enquiries')
@@ -76,6 +85,28 @@ export function CollegeDetail({ onNavigate, onBack, collegeId }: CollegeDetailPr
         ]);
 
       if (error) throw error;
+
+      // Log activity if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Master Log
+        await supabase.from('user_activity').insert({
+          user_id: user.id,
+          action_type: 'submit_enquiry',
+          details: {
+            college_id: collegeId,
+            college_name: collegeData.name,
+            course: formData.course
+          }
+        });
+
+        // Session Log
+        await logSessionActivity({
+          type: 'submit_enquiry',
+          college_name: collegeData.name,
+          course: formData.course
+        });
+      }
 
       setSubmitted(true);
       setTimeout(() => {
@@ -311,9 +342,12 @@ export function CollegeDetail({ onNavigate, onBack, collegeId }: CollegeDetailPr
                       type="tel"
                       required
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        setFormData({ ...formData, phone: val });
+                      }}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="+91"
+                      placeholder="10-digit mobile number"
                     />
                   </div>
 

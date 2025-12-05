@@ -10,6 +10,7 @@ interface AuthContextType {
     login: (email: string, password: string) => Promise<{ error: any }>;
     signUp: (email: string, password: string, name: string, phone: string) => Promise<{ data?: any; error: any }>;
     logout: () => Promise<void>;
+    logSessionActivity: (activity: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -38,12 +39,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const login = async (email: string, password: string) => {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password,
         });
-        if (!error) {
-            setIsAdmin(true); // Assuming successful login grants access for now
+
+        if (!error && data.user) {
+            setIsAdmin(true);
+
+            // Record login history and save ID
+            const { data: historyData, error: historyError } = await supabase
+                .from('login_history')
+                .insert({
+                    user_id: data.user.id,
+                    login_at: new Date().toISOString(),
+                    session_activities: []
+                })
+                .select()
+                .single();
+
+            if (historyData) {
+                localStorage.setItem('current_login_history_id', historyData.id);
+            }
         }
         return { error };
     };
@@ -59,16 +76,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 },
             },
         });
+
+        if (!error && data.user) {
+            // Create profile ONLY
+            await supabase.from('profiles').insert({
+                id: data.user.id,
+                full_name: name,
+                phone: phone,
+                email: email,
+                updated_at: new Date().toISOString()
+            });
+        }
+
         return { data, error };
     };
 
     const logout = async () => {
         await supabase.auth.signOut();
         setIsAdmin(false);
+        localStorage.removeItem('current_login_history_id');
+    };
+
+    const logSessionActivity = async (activity: any) => {
+        const historyId = localStorage.getItem('current_login_history_id');
+        if (!historyId) return;
+
+        // Fetch current activities
+        const { data } = await supabase
+            .from('login_history')
+            .select('session_activities')
+            .eq('id', historyId)
+            .single();
+
+        if (data) {
+            const currentActivities = data.session_activities || [];
+            const newActivities = [...currentActivities, { ...activity, timestamp: new Date().toISOString() }];
+
+            await supabase
+                .from('login_history')
+                .update({ session_activities: newActivities })
+                .eq('id', historyId);
+        }
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, loading, isAdmin, login, signUp, logout }}>
+        <AuthContext.Provider value={{ user, session, loading, isAdmin, login, signUp, logout, logSessionActivity }}>
             {!loading && children}
         </AuthContext.Provider>
     );

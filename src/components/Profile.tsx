@@ -28,7 +28,7 @@ export function Profile({ onNavigate, onBack }: ProfileProps) {
 
             <div className="flex-1 container mx-auto px-4 py-16">
                 <div className="max-w-3xl mx-auto">
-                    <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden transition-all hover:shadow-2xl duration-300">
+                    <div className="bg-white rounded-3xl shadow-[0_20px_40px_rgba(0,0,0,0.08)] border border-gray-100 overflow-hidden transition-all hover:shadow-2xl duration-300">
                         {/* Profile Header - Spacious & Centered */}
                         <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 px-8 py-16 text-white text-center relative overflow-hidden">
                             {/* Decorative circles */}

@@ -479,8 +479,14 @@ export function SearchResults({ onNavigate, onSelectCollege, initialFilters, onB
                 <CollegeCard
                   key={college.id}
                   college={college}
-                  onViewDetails={() => onSelectCollege(college.id)}
-                  onEnquire={() => onSelectCollege(college.id)}
+                  onViewDetails={() => {
+                    onSelectCollege(college.id);
+                    onNavigate('college-detail', { id: college.id });
+                  }}
+                  onEnquire={() => {
+                    onSelectCollege(college.id);
+                    onNavigate('college-detail', { id: college.id });
+                  }}
                 />
               ))}
               {filteredColleges.length === 0 && (

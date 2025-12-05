@@ -32,6 +32,9 @@ export default function App() {
     setCurrentPage(page);
     if (params) {
       setSearchParams(params);
+      if (params.id) {
+        setSelectedCollege(params.id);
+      }
     }
   };
 
@@ -62,6 +65,7 @@ export default function App() {
           />
         );
       case 'college-detail':
+        console.log('Rendering CollegeDetail with id:', selectedCollege);
         return (
           <CollegeDetail
             onNavigate={handleNavigate}

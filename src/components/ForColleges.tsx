@@ -23,6 +23,13 @@ export function ForColleges({ onNavigate, onBack }: ForCollegesProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Strict 10-digit phone validation
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(formData.phone)) {
+      alert('Please enter a valid 10-digit phone number.');
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('college_applications')
@@ -297,9 +304,12 @@ export function ForColleges({ onNavigate, onBack }: ForCollegesProps) {
                     type="tel"
                     required
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setFormData({ ...formData, phone: val });
+                    }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="+91"
+                    placeholder="10-digit mobile number"
                   />
                 </div>
 

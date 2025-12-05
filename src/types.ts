@@ -5,4 +5,5 @@ export interface SearchParams {
     city?: string;
     course?: string;
     budget?: string;
+    id?: number;
 }

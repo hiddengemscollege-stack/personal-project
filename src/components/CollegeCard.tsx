@@ -45,7 +45,7 @@ export function CollegeCard({ college, onViewDetails, onEnquire }: CollegeCardPr
     <div className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-gray-100 hover:border-blue-200 hover:-translate-y-1">
       {/* Badge */}
       <div className="mb-4">
-        <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold ${getBadgeColor(college.badge)}`}>
+        <span className={`inline-flex items-center px-[14px] py-[4px] rounded-[30px] text-sm font-semibold ${getBadgeColor(college.badge)}`}>
           {college.badge}
         </span>
       </div>
@@ -78,7 +78,7 @@ export function CollegeCard({ college, onViewDetails, onEnquire }: CollegeCardPr
       </div>
 
       {/* Fees */}
-      <div className="mb-6 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-100">
+      <div className="mb-6 bg-gradient-to-br from-gray-50 to-blue-50 rounded-xl p-4 border border-gray-100 shadow-[inset_0_0_30px_rgba(0,0,255,0.05)]">
         <span className="text-gray-600 text-sm font-medium block mb-1">Starting from</span>
         <div className="text-blue-600 font-bold text-xl">{college.startingFees}</div>
       </div>

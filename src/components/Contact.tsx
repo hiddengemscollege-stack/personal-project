@@ -4,6 +4,7 @@ import { Footer } from './Footer';
 import { Page } from '../types';
 import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 interface ContactProps {
   onNavigate: (page: Page) => void;
@@ -11,6 +12,7 @@ interface ContactProps {
 }
 
 export function Contact({ onNavigate, onBack }: ContactProps) {
+  const { logSessionActivity } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -22,6 +24,13 @@ export function Contact({ onNavigate, onBack }: ContactProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Strict 10-digit phone validation
+    const phoneRegex = /^\d{10}$/;
+    if (formData.phone && !phoneRegex.test(formData.phone)) {
+      alert('Please enter a valid 10-digit phone number.');
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -37,6 +46,25 @@ export function Contact({ onNavigate, onBack }: ContactProps) {
         ]);
 
       if (error) throw error;
+
+      // Log activity if user is logged in
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Master Log
+        await supabase.from('user_activity').insert({
+          user_id: user.id,
+          action_type: 'submit_contact_request',
+          details: {
+            subject: formData.subject
+          }
+        });
+
+        // Session Log
+        await logSessionActivity({
+          type: 'submit_contact_request',
+          subject: formData.subject
+        });
+      }
 
       setSubmitted(true);
       setTimeout(() => {
@@ -183,9 +211,12 @@ export function Contact({ onNavigate, onBack }: ContactProps) {
                   <input
                     type="tel"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                      setFormData({ ...formData, phone: val });
+                    }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="+91"
+                    placeholder="10-digit mobile number"
                   />
                 </div>
 

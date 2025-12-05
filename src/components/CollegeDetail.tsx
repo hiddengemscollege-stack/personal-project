@@ -1,48 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
-import { Page } from '../App';
-import { MapPin, Wifi, Home, Bus, FlaskConical, BookOpen, Briefcase, GraduationCap } from 'lucide-react';
+import { Page } from '../types';
+import { MapPin, GraduationCap, AlertCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { COLLEGE_DETAILS } from '../data/collegeDetails';
+import { trackEvent } from '../lib/analytics';
 
 interface CollegeDetailProps {
   onNavigate: (page: Page) => void;
   collegeId: number;
+  onBack?: () => void;
 }
 
-const collegeData = {
-  name: "Shree Samarth Institute of Technology",
-  city: "Nashik",
-  state: "Maharashtra",
-  tagline: "Building careers through quality education since 2012",
-  overview: "Shree Samarth Institute of Technology is a private engineering college affiliated with Savitribai Phule Pune University. We focus on providing affordable, quality technical education with a strong emphasis on practical learning and industry exposure. Our small class sizes ensure individual attention to every student.",
-  highlights: [
-    "AICTE Approved",
-    "Affiliated to SPPU",
-    "98% Pass Rate",
-    "Placement Cell Active",
-  ],
-  courses: [
-    { name: "B.Tech Computer Science", duration: "4 Years", fees: "₹45,000/year", seats: "60" },
-    { name: "B.Tech Mechanical Engineering", duration: "4 Years", fees: "₹42,000/year", seats: "60" },
-    { name: "B.Tech Electronics & Communication", duration: "4 Years", fees: "₹43,000/year", seats: "30" },
-    { name: "MBA", duration: "2 Years", fees: "₹55,000/year", seats: "30" },
-  ],
-  facilities: [
-    { icon: Home, name: "Hostel", available: true },
-    { icon: Wifi, name: "WiFi Campus", available: true },
-    { icon: Bus, name: "Transport", available: true },
-    { icon: FlaskConical, name: "Modern Labs", available: true },
-    { icon: BookOpen, name: "Library", available: true },
-    { icon: Briefcase, name: "Placement Cell", available: true },
-  ],
-  placements: {
-    percentage: "65%",
-    averagePackage: "₹2.8 LPA",
-    companies: ["TCS", "Infosys", "Wipro", "Tech Mahindra", "Capgemini", "Local Industries"],
-  }
-};
-
-export function CollegeDetail({ onNavigate, collegeId }: CollegeDetailProps) {
+export function CollegeDetail({ onNavigate, onBack, collegeId }: CollegeDetailProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'courses' | 'facilities' | 'placements'>('overview');
   const [formData, setFormData] = useState({
     name: '',
@@ -54,25 +25,79 @@ export function CollegeDetail({ onNavigate, collegeId }: CollegeDetailProps) {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        name: '',
-        phone: '',
-        email: '',
-        city: '',
-        percentage: '',
-        course: '',
+  const collegeData = COLLEGE_DETAILS[collegeId];
+
+  useEffect(() => {
+    if (collegeData) {
+      trackEvent('view_college', {
+        college_id: collegeId,
+        college_name: collegeData.name
       });
-    }, 3000);
+    }
+  }, [collegeId, collegeData]);
+
+  if (!collegeData) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Header onNavigate={onNavigate} currentPage="search" onBack={onBack} />
+        <div className="flex-1 flex flex-col items-center justify-center p-4">
+          <AlertCircle size={48} className="text-red-500 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">College Not Found</h2>
+          <p className="text-gray-600 mb-6">Sorry, we couldn't find the details for this college.</p>
+          <button
+            onClick={onBack || (() => onNavigate('search'))}
+            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
+        <Footer onNavigate={onNavigate} />
+      </div>
+    );
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const { error } = await supabase
+        .from('student_enquiries')
+        .insert([
+          {
+            name: formData.name,
+            phone: formData.phone,
+            email: formData.email,
+            city: formData.city,
+            percentage: formData.percentage,
+            course: formData.course,
+            source: 'college_detail',
+            message: `Enquiry for ${collegeData.name}`
+          }
+        ]);
+
+      if (error) throw error;
+
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        setFormData({
+          name: '',
+          phone: '',
+          email: '',
+          city: '',
+          percentage: '',
+          course: '',
+        });
+      }, 3000);
+    } catch (error) {
+      console.error('Error submitting enquiry:', error);
+      alert('Failed to submit enquiry. Please try again.');
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onNavigate={onNavigate} currentPage="search" />
+      <Header onNavigate={onNavigate} currentPage="search" onBack={onBack} />
 
       {/* Banner */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12">
@@ -96,41 +121,37 @@ export function CollegeDetail({ onNavigate, collegeId }: CollegeDetailProps) {
                 <div className="flex overflow-x-auto">
                   <button
                     onClick={() => setActiveTab('overview')}
-                    className={`px-6 py-4 whitespace-nowrap transition-colors ${
-                      activeTab === 'overview'
-                        ? 'border-b-2 border-blue-600 text-blue-600'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                    className={`px-6 py-4 whitespace-nowrap transition-colors ${activeTab === 'overview'
+                      ? 'border-b-2 border-blue-600 text-blue-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                      }`}
                   >
                     Overview
                   </button>
                   <button
                     onClick={() => setActiveTab('courses')}
-                    className={`px-6 py-4 whitespace-nowrap transition-colors ${
-                      activeTab === 'courses'
-                        ? 'border-b-2 border-blue-600 text-blue-600'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                    className={`px-6 py-4 whitespace-nowrap transition-colors ${activeTab === 'courses'
+                      ? 'border-b-2 border-blue-600 text-blue-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                      }`}
                   >
                     Courses & Fees
                   </button>
                   <button
                     onClick={() => setActiveTab('facilities')}
-                    className={`px-6 py-4 whitespace-nowrap transition-colors ${
-                      activeTab === 'facilities'
-                        ? 'border-b-2 border-blue-600 text-blue-600'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                    className={`px-6 py-4 whitespace-nowrap transition-colors ${activeTab === 'facilities'
+                      ? 'border-b-2 border-blue-600 text-blue-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                      }`}
                   >
                     Facilities
                   </button>
                   <button
                     onClick={() => setActiveTab('placements')}
-                    className={`px-6 py-4 whitespace-nowrap transition-colors ${
-                      activeTab === 'placements'
-                        ? 'border-b-2 border-blue-600 text-blue-600'
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                    className={`px-6 py-4 whitespace-nowrap transition-colors ${activeTab === 'placements'
+                      ? 'border-b-2 border-blue-600 text-blue-600'
+                      : 'text-gray-600 hover:text-gray-900'
+                      }`}
                   >
                     Placements
                   </button>
@@ -200,9 +221,8 @@ export function CollegeDetail({ onNavigate, collegeId }: CollegeDetailProps) {
                         const Icon = facility.icon;
                         return (
                           <div key={index} className="text-center">
-                            <div className={`w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center ${
-                              facility.available ? 'bg-green-100' : 'bg-gray-100'
-                            }`}>
+                            <div className={`w-16 h-16 mx-auto mb-3 rounded-full flex items-center justify-center ${facility.available ? 'bg-green-100' : 'bg-gray-100'
+                              }`}>
                               <Icon size={28} className={facility.available ? 'text-green-600' : 'text-gray-400'} />
                             </div>
                             <div className="text-gray-900 text-sm">{facility.name}</div>
@@ -220,15 +240,19 @@ export function CollegeDetail({ onNavigate, collegeId }: CollegeDetailProps) {
                 {activeTab === 'placements' && (
                   <div className="space-y-6">
                     <h2 className="text-gray-900 mb-6">Placement Statistics</h2>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-blue-50 rounded-xl p-6">
-                        <div className="text-gray-600 mb-2">Placement Percentage</div>
-                        <div className="text-blue-600">{collegeData.placements.percentage}</div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 rounded-xl p-6">
+                        <div className="text-gray-600 mb-2 font-medium">Placement Percentage</div>
+                        <div className="text-blue-700 text-2xl font-bold">{collegeData.placements.percentage}</div>
                       </div>
-                      <div className="bg-green-50 rounded-xl p-6">
-                        <div className="text-gray-600 mb-2">Average Package</div>
-                        <div className="text-green-600">{collegeData.placements.averagePackage}</div>
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-100 border border-green-200 rounded-xl p-6">
+                        <div className="text-gray-600 mb-2 font-medium">Average Package</div>
+                        <div className="text-green-700 text-2xl font-bold">{collegeData.placements.averagePackage}</div>
+                      </div>
+                      <div className="bg-gradient-to-br from-purple-50 to-fuchsia-100 border border-purple-200 rounded-xl p-6">
+                        <div className="text-gray-600 mb-2 font-medium">Highest Package</div>
+                        <div className="text-purple-700 text-2xl font-bold">{collegeData.placements.highestPackage}</div>
                       </div>
                     </div>
 
@@ -236,7 +260,7 @@ export function CollegeDetail({ onNavigate, collegeId }: CollegeDetailProps) {
                       <h3 className="text-gray-900 mb-4">Recruiting Companies</h3>
                       <div className="flex flex-wrap gap-3">
                         {collegeData.placements.companies.map((company, index) => (
-                          <span 
+                          <span
                             key={index}
                             className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg"
                           >

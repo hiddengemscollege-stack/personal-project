@@ -1,4 +1,5 @@
 import { MapPin, GraduationCap } from 'lucide-react';
+import { useLead } from '../context/LeadContext';
 
 interface College {
   id: number;
@@ -17,6 +18,16 @@ interface CollegeCardProps {
 }
 
 export function CollegeCard({ college, onViewDetails, onEnquire }: CollegeCardProps) {
+  const { checkAccess } = useLead();
+
+  const handleViewDetails = () => {
+    checkAccess('view', onViewDetails, college.id.toString());
+  };
+
+  const handleEnquire = () => {
+    checkAccess('enquire', onEnquire, college.id.toString());
+  };
+
   const getBadgeColor = (badge: string) => {
     switch (badge) {
       case 'Hidden Gem':
@@ -56,8 +67,8 @@ export function CollegeCard({ college, onViewDetails, onEnquire }: CollegeCardPr
         </div>
         <div className="flex flex-wrap gap-2">
           {college.courses.map((course, index) => (
-            <span 
-              key={index} 
+            <span
+              key={index}
               className="bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-blue-100"
             >
               {course}
@@ -74,14 +85,14 @@ export function CollegeCard({ college, onViewDetails, onEnquire }: CollegeCardPr
 
       {/* Actions */}
       <div className="flex space-x-3">
-        <button 
-          onClick={onViewDetails}
+        <button
+          onClick={handleViewDetails}
           className="flex-1 bg-white text-gray-700 px-5 py-3 rounded-xl hover:bg-gray-50 transition-all border-2 border-gray-200 hover:border-gray-300 font-semibold"
         >
           View Details
         </button>
-        <button 
-          onClick={onEnquire}
+        <button
+          onClick={handleEnquire}
           className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 font-semibold"
         >
           Enquire

@@ -1,86 +1,69 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
-import { Page } from '../App';
+import { Page, SearchParams } from '../types';
 import { CollegeCard } from './CollegeCard';
 import { SlidersHorizontal, X } from 'lucide-react';
+import { STATES, CITIES_BY_STATE, COURSES } from '../data/constants';
+import { COLLEGES } from '../data/colleges';
+import { trackEvent } from '../lib/analytics';
 
 interface SearchResultsProps {
-  onNavigate: (page: Page) => void;
+  onNavigate: (page: Page, params?: any) => void;
   onSelectCollege: (id: number) => void;
+  initialFilters?: SearchParams;
+  onBack?: () => void;
 }
 
-const allColleges = [
-  {
-    id: 1,
-    name: "Shree Samarth Institute of Technology",
-    city: "Nashik",
-    state: "Maharashtra",
-    badge: "Hidden Gem",
-    courses: ["B.Tech CSE", "B.Tech Mech", "MBA"],
-    startingFees: "₹45,000/year",
-  },
-  {
-    id: 2,
-    name: "St. Anthony's College of Engineering",
-    city: "Nellore",
-    state: "Andhra Pradesh",
-    badge: "Seats Available",
-    courses: ["B.Tech ECE", "B.Tech Civil", "BBA"],
-    startingFees: "₹52,000/year",
-  },
-  {
-    id: 3,
-    name: "Green Valley College of Commerce",
-    city: "Indore",
-    state: "Madhya Pradesh",
-    badge: "New",
-    courses: ["B.Com", "BCA", "BA Economics"],
-    startingFees: "₹35,000/year",
-  },
-  {
-    id: 4,
-    name: "Bright Future Institute of Management",
-    city: "Nagpur",
-    state: "Maharashtra",
-    badge: "Seats Available",
-    courses: ["MBA", "BBA", "B.Com"],
-    startingFees: "₹48,000/year",
-  },
-  {
-    id: 5,
-    name: "Sunrise College of Engineering & Technology",
-    city: "Vijayawada",
-    state: "Andhra Pradesh",
-    badge: "Hidden Gem",
-    courses: ["B.Tech CSE", "B.Tech IT", "MCA"],
-    startingFees: "₹42,000/year",
-  },
-  {
-    id: 6,
-    name: "Royal Institute of Science & Commerce",
-    city: "Bhopal",
-    state: "Madhya Pradesh",
-    badge: "New",
-    courses: ["B.Sc", "B.Com", "BCA"],
-    startingFees: "₹38,000/year",
-  },
-];
-
-export function SearchResults({ onNavigate, onSelectCollege }: SearchResultsProps) {
+export function SearchResults({ onNavigate, onSelectCollege, initialFilters, onBack }: SearchResultsProps) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [filters, setFilters] = useState({
-    state: '',
-    city: '',
+  const [tempFilters, setTempFilters] = useState({
+    state: initialFilters?.state || '',
+    city: initialFilters?.city || '',
     minFees: 0,
     maxFees: 200000,
-    courses: [] as string[],
+    courses: initialFilters?.course ? [initialFilters.course] : [] as string[],
     hostel: '',
     placement: '',
   });
 
+  const [filters, setFilters] = useState(tempFilters);
+
+  // Update filters if initialFilters change (though typically this component remounts)
+  // Update filters if initialFilters change
+  useEffect(() => {
+    console.log('Initial filters received:', initialFilters);
+    if (initialFilters) {
+      let minFees = 0;
+      let maxFees = 200000;
+
+      if (initialFilters.budget) {
+        const [min, max] = initialFilters.budget.split('-').map(Number);
+        minFees = min || 0;
+        maxFees = max || 200000;
+      }
+
+      const newFilters = {
+        state: initialFilters.state || '',
+        city: initialFilters.city || '',
+        minFees,
+        maxFees,
+        courses: initialFilters.course ? [initialFilters.course] : [],
+        hostel: '',
+        placement: '',
+      };
+      setTempFilters(newFilters);
+      setFilters(newFilters);
+
+      trackEvent('search', {
+        source: 'initial_load',
+        filters: newFilters
+      });
+    }
+  }, [initialFilters]);
+
   const toggleCourse = (course: string) => {
-    setFilters(prev => ({
+    setTempFilters(prev => ({
       ...prev,
       courses: prev.courses.includes(course)
         ? prev.courses.filter(c => c !== course)
@@ -88,163 +71,69 @@ export function SearchResults({ onNavigate, onSelectCollege }: SearchResultsProp
     }));
   };
 
-  const FilterSection = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-gray-900 mb-3">Location</h3>
-        <select
-          value={filters.state}
-          onChange={(e) => setFilters({ ...filters, state: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
-        >
-          <option value="">All States</option>
-          <option value="maharashtra">Maharashtra</option>
-          <option value="karnataka">Karnataka</option>
-          <option value="tamil-nadu">Tamil Nadu</option>
-          <option value="andhra-pradesh">Andhra Pradesh</option>
-          <option value="madhya-pradesh">Madhya Pradesh</option>
-        </select>
-        <select
-          value={filters.city}
-          onChange={(e) => setFilters({ ...filters, city: e.target.value })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">All Cities</option>
-          <option value="nashik">Nashik</option>
-          <option value="indore">Indore</option>
-          <option value="nellore">Nellore</option>
-          <option value="nagpur">Nagpur</option>
-          <option value="vijayawada">Vijayawada</option>
-          <option value="bhopal">Bhopal</option>
-        </select>
-      </div>
+  const applyFilters = () => {
+    console.log('Applying filters:', tempFilters);
+    setFilters(tempFilters);
+    setMobileFiltersOpen(false);
 
-      <div>
-        <h3 className="text-gray-900 mb-3">Fees Range</h3>
-        <div className="space-y-3">
-          <input
-            type="range"
-            min="0"
-            max="200000"
-            step="10000"
-            value={filters.maxFees}
-            onChange={(e) => setFilters({ ...filters, maxFees: Number(e.target.value) })}
-            className="w-full"
-          />
-          <div className="flex justify-between text-sm text-gray-600">
-            <span>₹0</span>
-            <span>₹{filters.maxFees.toLocaleString()}</span>
-          </div>
-        </div>
-      </div>
+    trackEvent('search', {
+      source: 'apply_filters',
+      filters: tempFilters
+    });
+  };
 
-      <div>
-        <h3 className="text-gray-900 mb-3">Courses</h3>
-        <div className="space-y-2">
-          {['B.Tech', 'BCA', 'B.Com', 'BBA', 'MBA', 'B.Sc'].map((course) => (
-            <label key={course} className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={filters.courses.includes(course)}
-                onChange={() => toggleCourse(course)}
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <span className="text-gray-700">{course}</span>
-            </label>
-          ))}
-        </div>
-      </div>
+  const clearFilters = () => {
+    const resetFilters = {
+      state: '',
+      city: '',
+      minFees: 0,
+      maxFees: 200000,
+      courses: [],
+      hostel: '',
+      placement: '',
+    };
+    setTempFilters(resetFilters);
+    setFilters(resetFilters);
+  };
 
-      <div>
-        <h3 className="text-gray-900 mb-3">Hostel Available</h3>
-        <div className="space-y-2">
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="radio"
-              name="hostel"
-              value="yes"
-              checked={filters.hostel === 'yes'}
-              onChange={(e) => setFilters({ ...filters, hostel: e.target.value })}
-              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-            />
-            <span className="text-gray-700">Yes</span>
-          </label>
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="radio"
-              name="hostel"
-              value="no"
-              checked={filters.hostel === 'no'}
-              onChange={(e) => setFilters({ ...filters, hostel: e.target.value })}
-              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-            />
-            <span className="text-gray-700">No</span>
-          </label>
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="radio"
-              name="hostel"
-              value=""
-              checked={filters.hostel === ''}
-              onChange={(e) => setFilters({ ...filters, hostel: e.target.value })}
-              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-            />
-            <span className="text-gray-700">Any</span>
-          </label>
-        </div>
-      </div>
+  // Filter logic
+  const filteredColleges = COLLEGES.filter(college => {
 
-      <div>
-        <h3 className="text-gray-900 mb-3">Placement Assistance</h3>
-        <div className="space-y-2">
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="radio"
-              name="placement"
-              value="yes"
-              checked={filters.placement === 'yes'}
-              onChange={(e) => setFilters({ ...filters, placement: e.target.value })}
-              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-            />
-            <span className="text-gray-700">Yes</span>
-          </label>
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="radio"
-              name="placement"
-              value="no"
-              checked={filters.placement === 'no'}
-              onChange={(e) => setFilters({ ...filters, placement: e.target.value })}
-              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-            />
-            <span className="text-gray-700">No</span>
-          </label>
-          <label className="flex items-center space-x-2 cursor-pointer">
-            <input
-              type="radio"
-              name="placement"
-              value=""
-              checked={filters.placement === ''}
-              onChange={(e) => setFilters({ ...filters, placement: e.target.value })}
-              className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
-            />
-            <span className="text-gray-700">Any</span>
-          </label>
-        </div>
-      </div>
-    </div>
-  );
+    if (filters.state && college.state !== filters.state) return false;
+    if (filters.city && college.city !== filters.city) return false;
+    if (college.feesValue > filters.maxFees) return false;
+    if (college.feesValue < filters.minFees) return false;
+    if (filters.courses.length > 0) {
+      const hasCourse = filters.courses.some(c => college.courses.includes(c));
+      if (!hasCourse) return false;
+    }
+    if (filters.hostel && filters.hostel !== '') {
+      const wantsHostel = filters.hostel === 'yes';
+      if (college.hostelAvailable !== wantsHostel) return false;
+    }
+    if (filters.placement && filters.placement !== '') {
+      const wantsPlacement = filters.placement === 'yes';
+      if (college.placementAssistance !== wantsPlacement) return false;
+    }
+    return true;
+  });
+
+  console.log('Filtered colleges count:', filteredColleges.length);
+
+  const availableCities = tempFilters.state ? CITIES_BY_STATE[tempFilters.state] || [] : [];
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onNavigate={onNavigate} currentPage="search" />
+      <Header onNavigate={onNavigate} currentPage="search" onBack={onBack} />
 
       {/* Page Header */}
       <div className="bg-white border-b border-gray-200 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="text-gray-900 mb-2">Find Your College</h1>
           <p className="text-gray-600">
-            {allColleges.length} underrated colleges waiting to welcome you
+            {filteredColleges.length} underrated colleges waiting to welcome you
           </p>
         </div>
       </div>
@@ -256,22 +145,159 @@ export function SearchResults({ onNavigate, onSelectCollege }: SearchResultsProp
             <div className="bg-white rounded-2xl shadow-md p-6 sticky top-24">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-gray-900">Filters</h2>
-                <button 
-                  onClick={() => setFilters({
-                    state: '',
-                    city: '',
-                    minFees: 0,
-                    maxFees: 200000,
-                    courses: [],
-                    hostel: '',
-                    placement: '',
-                  })}
+                <button
+                  onClick={clearFilters}
                   className="text-blue-600 text-sm hover:text-blue-700"
                 >
                   Clear All
                 </button>
               </div>
-              <FilterSection />
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-gray-900 mb-3">Location</h3>
+                  <select
+                    value={tempFilters.state}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTempFilters({ ...tempFilters, state: e.target.value, city: '' })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
+                  >
+                    <option value="">All States</option>
+                    {STATES.map(state => (
+                      <option key={state} value={state}>{state}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={tempFilters.city}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTempFilters({ ...tempFilters, city: e.target.value })}
+                    disabled={!tempFilters.state}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="">All Cities</option>
+                    {availableCities.map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <h3 className="text-gray-900 mb-3">Fees Range</h3>
+                  <div className="space-y-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="200000"
+                      step="10000"
+                      value={tempFilters.maxFees}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, maxFees: Number(e.target.value) })}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>₹0</span>
+                      <span>₹{tempFilters.maxFees.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-gray-900 mb-3">Courses</h3>
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {COURSES.map((course) => (
+                      <label key={course} className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={tempFilters.courses.includes(course)}
+                          onChange={() => toggleCourse(course)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        />
+                        <span className="text-gray-700">{course}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-gray-900 mb-3">Hostel Available</h3>
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="hostel-desktop"
+                        value="yes"
+                        checked={tempFilters.hostel === 'yes'}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, hostel: e.target.value })}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-gray-700">Yes</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="hostel-desktop"
+                        value="no"
+                        checked={tempFilters.hostel === 'no'}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, hostel: e.target.value })}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-gray-700">No</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="hostel-desktop"
+                        value=""
+                        checked={tempFilters.hostel === ''}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, hostel: e.target.value })}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-gray-700">Any</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-gray-900 mb-3">Placement Assistance</h3>
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="placement-desktop"
+                        value="yes"
+                        checked={tempFilters.placement === 'yes'}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, placement: e.target.value })}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-gray-700">Yes</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="placement-desktop"
+                        value="no"
+                        checked={tempFilters.placement === 'no'}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, placement: e.target.value })}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-gray-700">No</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="placement-desktop"
+                        value=""
+                        checked={tempFilters.placement === ''}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, placement: e.target.value })}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-gray-700">Any</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={applyFilters}
+                className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors mt-6 font-medium"
+              >
+                Apply Filters
+              </button>
             </div>
           </div>
 
@@ -296,9 +322,148 @@ export function SearchResults({ onNavigate, onSelectCollege }: SearchResultsProp
                     <X size={24} className="text-gray-700" />
                   </button>
                 </div>
-                <FilterSection />
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-gray-900 mb-3">Location</h3>
+                    <select
+                      value={tempFilters.state}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTempFilters({ ...tempFilters, state: e.target.value, city: '' })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3"
+                    >
+                      <option value="">All States</option>
+                      {STATES.map(state => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={tempFilters.city}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTempFilters({ ...tempFilters, city: e.target.value })}
+                      disabled={!tempFilters.state}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="">All Cities</option>
+                      {availableCities.map(city => (
+                        <option key={city} value={city}>{city}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <h3 className="text-gray-900 mb-3">Fees Range</h3>
+                    <div className="space-y-3">
+                      <input
+                        type="range"
+                        min="0"
+                        max="200000"
+                        step="10000"
+                        value={tempFilters.maxFees}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, maxFees: Number(e.target.value) })}
+                        className="w-full"
+                      />
+                      <div className="flex justify-between text-sm text-gray-600">
+                        <span>₹0</span>
+                        <span>₹{tempFilters.maxFees.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-gray-900 mb-3">Courses</h3>
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {COURSES.map((course) => (
+                        <label key={course} className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={tempFilters.courses.includes(course)}
+                            onChange={() => toggleCourse(course)}
+                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                          <span className="text-gray-700">{course}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-gray-900 mb-3">Hostel Available</h3>
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="hostel"
+                          value="yes"
+                          checked={tempFilters.hostel === 'yes'}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, hostel: e.target.value })}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-gray-700">Yes</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="hostel"
+                          value="no"
+                          checked={tempFilters.hostel === 'no'}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, hostel: e.target.value })}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-gray-700">No</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="hostel"
+                          value=""
+                          checked={tempFilters.hostel === ''}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, hostel: e.target.value })}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-gray-700">Any</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-gray-900 mb-3">Placement Assistance</h3>
+                    <div className="space-y-2">
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="placement"
+                          value="yes"
+                          checked={tempFilters.placement === 'yes'}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, placement: e.target.value })}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-gray-700">Yes</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="placement"
+                          value="no"
+                          checked={tempFilters.placement === 'no'}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, placement: e.target.value })}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-gray-700">No</span>
+                      </label>
+                      <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="placement"
+                          value=""
+                          checked={tempFilters.placement === ''}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTempFilters({ ...tempFilters, placement: e.target.value })}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-gray-700">Any</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
                 <button
-                  onClick={() => setMobileFiltersOpen(false)}
+                  onClick={applyFilters}
                   className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors mt-6"
                 >
                   Apply Filters
@@ -310,7 +475,7 @@ export function SearchResults({ onNavigate, onSelectCollege }: SearchResultsProp
           {/* Results Grid */}
           <div className="flex-1">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {allColleges.map((college) => (
+              {filteredColleges.map((college) => (
                 <CollegeCard
                   key={college.id}
                   college={college}
@@ -318,6 +483,17 @@ export function SearchResults({ onNavigate, onSelectCollege }: SearchResultsProp
                   onEnquire={() => onSelectCollege(college.id)}
                 />
               ))}
+              {filteredColleges.length === 0 && (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-gray-500 text-lg">No colleges found matching your criteria.</p>
+                  <button
+                    onClick={clearFilters}
+                    className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+                  >
+                    Clear all filters
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -1,122 +1,168 @@
-import { Page } from '../App';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, GraduationCap, ArrowLeft, LogIn, User, MessageSquare } from 'lucide-react';
 import { useState } from 'react';
+import { Page } from '../types';
+import { useAuth } from '../context/AuthContext';
 
 interface HeaderProps {
   onNavigate: (page: Page) => void;
-  currentPage?: Page;
+  currentPage: Page;
+  onBack?: () => void;
 }
 
-export function Header({ onNavigate, currentPage }: HeaderProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+export function Header({ onNavigate, currentPage, onBack }: HeaderProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
-    <header className="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+    <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo */}
-          <button 
-            onClick={() => onNavigate('home')}
-            className="flex items-center space-x-3 group"
-          >
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 via-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30 group-hover:shadow-xl group-hover:shadow-blue-500/40 transition-all">
-              <span className="text-white text-xl">💎</span>
+        <div className="flex justify-between items-center h-16 relative">
+          <div className="flex items-center gap-4">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Go back"
+              >
+                <ArrowLeft size={20} className="text-gray-600" />
+              </button>
+            )}
+            <div
+              className="flex items-center cursor-pointer"
+              onClick={() => onNavigate('home')}
+            >
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-2">
+                <GraduationCap className="text-white" size={20} />
+              </div>
+              <span className="text-xl font-bold text-gray-900">HiddenGems</span>
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-gray-900 text-lg leading-none">HiddenGems</span>
-              <span className="text-xs text-gray-500">Colleges</span>
-            </div>
-          </button>
+          </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-1">
-            <button 
+          {/* Centered ChatBot Button - Desktop Only */}
+          <div className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <button
+              onClick={() => onNavigate('chatbot')}
+              className="group flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-full shadow-lg hover:shadow-2xl hover:scale-110 transition-all duration-300 font-bold ring-2 ring-green-400"
+            >
+              <MessageSquare size={18} className="text-white group-hover:rotate-12 transition-transform" />
+              <span className="font-bold tracking-wide text-sm">Ask Gemmy</span>
+            </button>
+          </div>
+
+          <div className="hidden md:flex items-center gap-6">
+            <button
+              onClick={() => onNavigate('home')}
+              className={`${currentPage === 'home' ? 'text-blue-600' : 'text-gray-600'} hover:text-blue-600 font-medium transition-colors`}
+            >
+              Home
+            </button>
+            <button
               onClick={() => onNavigate('search')}
-              className={`px-4 py-2 rounded-lg transition-all ${currentPage === 'search' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}
+              className={`${currentPage === 'search' ? 'text-blue-600' : 'text-gray-600'} hover:text-blue-600 font-medium transition-colors`}
             >
               Find Colleges
             </button>
-            <a href="#how-it-works" className="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all">
-              How It Works
-            </a>
-            <button 
+
+            {user ? (
+              <button
+                onClick={() => onNavigate('profile')}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                <User size={16} />
+                Profile
+              </button>
+            ) : (
+              <button
+                onClick={() => onNavigate('login')}
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                <LogIn size={16} />
+                Login
+              </button>
+            )}
+
+            <button
               onClick={() => onNavigate('for-colleges')}
-              className={`px-4 py-2 rounded-lg transition-all ${currentPage === 'for-colleges' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
             >
               For Colleges
             </button>
-            <button 
-              onClick={() => onNavigate('contact')}
-              className={`px-4 py-2 rounded-lg transition-all ${currentPage === 'contact' ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'}`}
-            >
-              Contact
-            </button>
-          </nav>
-
-          {/* CTA Button */}
-          <button 
-            onClick={() => onNavigate('search')}
-            className="hidden md:block bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-2.5 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 font-semibold"
-          >
-            Find Colleges
-          </button>
-
-          {/* Mobile menu button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-
-        {/* Mobile Navigation */}
-        {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100 animate-fade-in">
-            <div className="flex flex-col space-y-2">
-              <button 
-                onClick={() => {
-                  onNavigate('search');
-                  setMobileMenuOpen(false);
-                }}
-                className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition-all text-left font-medium"
-              >
-                Find Colleges
-              </button>
-              <a href="#how-it-works" className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition-all font-medium">
-                How It Works
-              </a>
-              <button 
-                onClick={() => {
-                  onNavigate('for-colleges');
-                  setMobileMenuOpen(false);
-                }}
-                className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition-all text-left font-medium"
-              >
-                For Colleges
-              </button>
-              <button 
-                onClick={() => {
-                  onNavigate('contact');
-                  setMobileMenuOpen(false);
-                }}
-                className="text-gray-700 hover:text-blue-600 hover:bg-blue-50 px-4 py-3 rounded-lg transition-all text-left font-medium"
-              >
-                Contact
-              </button>
-              <button 
-                onClick={() => {
-                  onNavigate('search');
-                  setMobileMenuOpen(false);
-                }}
-                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg shadow-blue-500/30 font-semibold"
-              >
-                Find Colleges
-              </button>
-            </div>
           </div>
-        )}
+
+          <div className="md:hidden flex items-center gap-4">
+            {/* Mobile ChatBot Trigger */}
+            <button
+              onClick={() => onNavigate('chatbot')}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white rounded-full shadow-lg text-xs font-bold ring-2 ring-white/50"
+            >
+              <MessageSquare size={14} />
+              Gemmy
+            </button>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-gray-600 hover:text-gray-900 p-2"
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
       </div>
+
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white border-t border-gray-100">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            <button
+              onClick={() => {
+                onNavigate('home');
+                setIsMenuOpen(false);
+              }}
+              className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+            >
+              Home
+            </button>
+            <button
+              onClick={() => {
+                onNavigate('search');
+                setIsMenuOpen(false);
+              }}
+              className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+            >
+              Find Colleges
+            </button>
+            {user ? (
+              <button
+                onClick={() => {
+                  onNavigate('profile');
+                  setIsMenuOpen(false);
+                }}
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-blue-600 hover:bg-blue-50"
+              >
+                Profile
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  onNavigate('login');
+                  setIsMenuOpen(false);
+                }}
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-blue-600 hover:bg-blue-50"
+              >
+                Login
+              </button>
+            )}
+            <button
+              onClick={() => {
+                onNavigate('for-colleges');
+                setIsMenuOpen(false);
+              }}
+              className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            >
+              For Colleges
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

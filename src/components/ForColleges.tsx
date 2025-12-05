@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
-import { Page } from '../App';
+import { Page } from '../types';
 import { Target, TrendingUp, DollarSign, Check } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface ForCollegesProps {
   onNavigate: (page: Page) => void;
+  onBack?: () => void;
 }
 
-export function ForColleges({ onNavigate }: ForCollegesProps) {
+export function ForColleges({ onNavigate, onBack }: ForCollegesProps) {
   const [formData, setFormData] = useState({
     collegeName: '',
     city: '',
@@ -18,19 +20,39 @@ export function ForColleges({ onNavigate }: ForCollegesProps) {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        collegeName: '',
-        city: '',
-        contactPerson: '',
-        phone: '',
-        email: '',
-      });
-    }, 3000);
+
+    try {
+      const { error } = await supabase
+        .from('college_applications')
+        .insert([
+          {
+            college_name: formData.collegeName,
+            city: formData.city,
+            contact_person: formData.contactPerson,
+            phone: formData.phone,
+            email: formData.email,
+          }
+        ]);
+
+      if (error) throw error;
+
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        setFormData({
+          collegeName: '',
+          city: '',
+          contactPerson: '',
+          phone: '',
+          email: '',
+        });
+      }, 3000);
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      alert('Failed to submit application. Please try again.');
+    }
   };
 
   const plans = [
@@ -80,7 +102,7 @@ export function ForColleges({ onNavigate }: ForCollegesProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onNavigate={onNavigate} currentPage="for-colleges" />
+      <Header onNavigate={onNavigate} currentPage="for-colleges" onBack={onBack} />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-600 to-blue-700 text-white py-16 md:py-24">
@@ -152,11 +174,10 @@ export function ForColleges({ onNavigate }: ForCollegesProps) {
             {plans.map((plan, index) => (
               <div
                 key={index}
-                className={`rounded-2xl p-8 ${
-                  plan.highlighted
-                    ? 'bg-blue-600 text-white shadow-2xl scale-105 relative'
-                    : 'bg-gray-50 text-gray-900'
-                }`}
+                className={`rounded-2xl p-8 ${plan.highlighted
+                  ? 'bg-blue-600 text-white shadow-2xl scale-105 relative'
+                  : 'bg-gray-50 text-gray-900'
+                  }`}
               >
                 {plan.badge && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
@@ -185,9 +206,8 @@ export function ForColleges({ onNavigate }: ForCollegesProps) {
                     <div key={idx} className="flex items-start space-x-3">
                       <Check
                         size={20}
-                        className={`flex-shrink-0 mt-0.5 ${
-                          plan.highlighted ? 'text-blue-200' : 'text-green-600'
-                        }`}
+                        className={`flex-shrink-0 mt-0.5 ${plan.highlighted ? 'text-blue-200' : 'text-green-600'
+                          }`}
                       />
                       <span className={`text-sm ${plan.highlighted ? 'text-blue-50' : 'text-gray-700'}`}>
                         {feature}
@@ -201,11 +221,10 @@ export function ForColleges({ onNavigate }: ForCollegesProps) {
                     const formSection = document.getElementById('application-form');
                     formSection?.scrollIntoView({ behavior: 'smooth' });
                   }}
-                  className={`w-full py-3 rounded-lg transition-colors ${
-                    plan.highlighted
-                      ? 'bg-white text-blue-600 hover:bg-gray-100'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
+                  className={`w-full py-3 rounded-lg transition-colors ${plan.highlighted
+                    ? 'bg-white text-blue-600 hover:bg-gray-100'
+                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }`}
                 >
                   Apply for Listing
                 </button>

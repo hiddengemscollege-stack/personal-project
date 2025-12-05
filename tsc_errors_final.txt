@@ -1,0 +1,7 @@
+src/context/AuthContext.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/context/CollegeContext.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/context/CollegeContext.tsx(2,10): error TS6133: 'MapPin' is declared but its value is never read.
+src/context/CollegeContext.tsx(2,18): error TS6133: 'GraduationCap' is declared but its value is never read.
+src/context/CollegeContext.tsx(2,33): error TS6133: 'Users' is declared but its value is never read.
+src/context/CollegeContext.tsx(2,40): error TS6133: 'Building2' is declared but its value is never read.
+src/context/CollegeContext.tsx(2,51): error TS6133: 'Globe' is declared but its value is never read.

@@ -1,4 +1,4 @@
-import { Page } from '../App';
+import { Page } from '../types';
 import { Mail, Phone, MapPin } from 'lucide-react';
 
 interface FooterProps {
@@ -30,25 +30,25 @@ export function Footer({ onNavigate }: FooterProps) {
           <div>
             <h3 className="text-white mb-6 font-semibold">Quick Links</h3>
             <div className="space-y-3">
-              <button 
+              <button
                 onClick={() => onNavigate('home')}
                 className="block text-gray-400 hover:text-white transition-colors text-sm hover:translate-x-1 transition-transform"
               >
                 Home
               </button>
-              <button 
+              <button
                 onClick={() => onNavigate('search')}
                 className="block text-gray-400 hover:text-white transition-colors text-sm hover:translate-x-1 transition-transform"
               >
                 Find Colleges
               </button>
-              <button 
+              <button
                 onClick={() => onNavigate('for-colleges')}
                 className="block text-gray-400 hover:text-white transition-colors text-sm hover:translate-x-1 transition-transform"
               >
                 For Colleges
               </button>
-              <button 
+              <button
                 onClick={() => onNavigate('contact')}
                 className="block text-gray-400 hover:text-white transition-colors text-sm hover:translate-x-1 transition-transform"
               >
@@ -57,38 +57,47 @@ export function Footer({ onNavigate }: FooterProps) {
             </div>
           </div>
 
-          {/* For Students */}
-          <div>
-            <h3 className="text-white mb-6 font-semibold">For Students</h3>
-            <div className="space-y-3">
-              <a href="#" className="block text-gray-400 hover:text-white transition-colors text-sm hover:translate-x-1 transition-transform">
-                How It Works
-              </a>
-              <a href="#" className="block text-gray-400 hover:text-white transition-colors text-sm hover:translate-x-1 transition-transform">
-                Why Underrated Colleges
-              </a>
-              <a href="#" className="block text-gray-400 hover:text-white transition-colors text-sm hover:translate-x-1 transition-transform">
-                Success Stories
-              </a>
-            </div>
-          </div>
-
           {/* Contact */}
           <div>
             <h3 className="text-white mb-6 font-semibold">Get in Touch</h3>
             <div className="space-y-4">
-              <div className="flex items-start space-x-3 group">
-                <Mail size={18} className="text-blue-400 mt-1 group-hover:text-blue-300 transition-colors" />
-                <span className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">hello@hiddengemscolleges.in</span>
+              <div className="flex items-center space-x-3 group">
+                <Mail size={18} className="text-blue-400 group-hover:text-blue-300 transition-colors" />
+                <span className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">hiddengemscollege@gmail.com</span>
               </div>
-              <div className="flex items-start space-x-3 group">
-                <Phone size={18} className="text-blue-400 mt-1 group-hover:text-blue-300 transition-colors" />
-                <span className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">+91 98765 43210</span>
+              <div className="flex items-center space-x-3 group">
+                <Phone size={18} className="text-blue-400 group-hover:text-blue-300 transition-colors" />
+                <span className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">+91 75279 96150</span>
               </div>
-              <div className="flex items-start space-x-3 group">
-                <MapPin size={18} className="text-blue-400 mt-1 group-hover:text-blue-300 transition-colors" />
-                <span className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">Mumbai, India</span>
+              <div className="flex items-center space-x-3 group">
+                <MapPin size={18} className="text-blue-400 group-hover:text-blue-300 transition-colors" />
+                <span className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">INDORE , INDIA</span>
               </div>
+            </div>
+          </div>
+
+          {/* For Students */}
+          <div>
+            <h3 className="text-white mb-6 font-semibold">For Students</h3>
+            <div className="space-y-3">
+              <button
+                onClick={() => onNavigate('how-it-works')}
+                className="block text-gray-400 hover:text-white transition-colors text-sm hover:translate-x-1 transition-transform"
+              >
+                How It Works
+              </button>
+              <button
+                onClick={() => onNavigate('why-underrated')}
+                className="block text-gray-400 hover:text-white transition-colors text-sm hover:translate-x-1 transition-transform"
+              >
+                Why Underrated Colleges
+              </button>
+              <button
+                onClick={() => onNavigate('success-stories')}
+                className="block text-gray-400 hover:text-white transition-colors text-sm hover:translate-x-1 transition-transform"
+              >
+                Success Stories
+              </button>
             </div>
           </div>
         </div>

@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { Header } from './Header';
 import { Footer } from './Footer';
-import { Page } from '../App';
+import { Page } from '../types';
 import { Mail, Phone, MapPin, MessageCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface ContactProps {
   onNavigate: (page: Page) => void;
+  onBack?: () => void;
 }
 
-export function Contact({ onNavigate }: ContactProps) {
+export function Contact({ onNavigate, onBack }: ContactProps) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,28 +20,48 @@ export function Contact({ onNavigate }: ContactProps) {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: '',
-      });
-    }, 3000);
+
+    try {
+      const { error } = await supabase
+        .from('contact_requests')
+        .insert([
+          {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            subject: formData.subject,
+            message: formData.message
+          }
+        ]);
+
+      if (error) throw error;
+
+      setSubmitted(true);
+      setTimeout(() => {
+        setSubmitted(false);
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: '',
+        });
+      }, 3000);
+    } catch (error) {
+      console.error('Error submitting enquiry:', error);
+      alert('Failed to submit enquiry. Please try again.');
+    }
   };
 
   const handleWhatsApp = () => {
-    window.open('https://wa.me/919876543210', '_blank');
+    window.open('https://wa.me/917527996150', '_blank');
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onNavigate={onNavigate} currentPage="contact" />
+      <Header onNavigate={onNavigate} currentPage="contact" onBack={onBack} />
 
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-blue-600 to-blue-700 text-white py-16">
@@ -69,7 +91,7 @@ export function Contact({ onNavigate }: ContactProps) {
                 </div>
                 <div>
                   <h3 className="text-gray-900 mb-1">Email</h3>
-                  <p className="text-gray-600">hello@hiddengemscolleges.in</p>
+                  <p className="text-gray-600">hiddengemscollege@gmail.com</p>
                   <p className="text-gray-500 text-sm mt-1">For general inquiries</p>
                 </div>
               </div>
@@ -80,7 +102,7 @@ export function Contact({ onNavigate }: ContactProps) {
                 </div>
                 <div>
                   <h3 className="text-gray-900 mb-1">Phone</h3>
-                  <p className="text-gray-600">+91 98765 43210</p>
+                  <p className="text-gray-600">+91 75279 96150</p>
                   <p className="text-gray-500 text-sm mt-1">Mon-Sat, 9 AM - 6 PM IST</p>
                 </div>
               </div>
@@ -91,7 +113,7 @@ export function Contact({ onNavigate }: ContactProps) {
                 </div>
                 <div>
                   <h3 className="text-gray-900 mb-1">Office</h3>
-                  <p className="text-gray-600">Mumbai, Maharashtra</p>
+                  <p className="text-gray-600">Indore, Madhya Pradesh</p>
                   <p className="text-gray-500 text-sm mt-1">India</p>
                 </div>
               </div>

@@ -84,7 +84,7 @@ export function Contact({ onNavigate, onBack }: ContactProps) {
   };
 
   const handleWhatsApp = () => {
-    window.open('https://wa.me/917527996150', '_blank');
+    window.open('https://wa.me/919530789815', '_blank');
   };
 
   return (
@@ -130,7 +130,7 @@ export function Contact({ onNavigate, onBack }: ContactProps) {
                 </div>
                 <div>
                   <h3 className="text-gray-900 mb-1">Phone</h3>
-                  <p className="text-gray-600">+91 75279 96150</p>
+                  <p className="text-gray-600">+91 95307 89815</p>
                   <p className="text-gray-500 text-sm mt-1">Mon-Sat, 9 AM - 6 PM IST</p>
                 </div>
               </div>

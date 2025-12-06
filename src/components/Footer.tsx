@@ -67,7 +67,7 @@ export function Footer({ onNavigate }: FooterProps) {
               </div>
               <div className="flex items-center space-x-3 group">
                 <Phone size={18} className="text-blue-400 group-hover:text-blue-300 transition-colors" />
-                <span className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">+91 75279 96150</span>
+                <span className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">+91 95307 89815</span>
               </div>
               <div className="flex items-center space-x-3 group">
                 <MapPin size={18} className="text-blue-400 group-hover:text-blue-300 transition-colors" />
@@ -106,9 +106,14 @@ export function Footer({ onNavigate }: FooterProps) {
           <p className="text-gray-400 text-sm mb-4 md:mb-0">
             © {new Date().getFullYear()} HiddenGems Colleges. All rights reserved.
           </p>
-          <p className="text-gray-500 text-sm">
-            Helping students discover quality education.
-          </p>
+          <div className="flex space-x-6">
+            <button
+              onClick={() => onNavigate('privacy-policy')}
+              className="text-gray-400 hover:text-white text-sm transition-colors"
+            >
+              Privacy Policy & Terms
+            </button>
+          </div>
         </div>
       </div>
     </footer>

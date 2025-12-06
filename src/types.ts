@@ -1,4 +1,4 @@
-export type Page = 'home' | 'search' | 'college-detail' | 'for-colleges' | 'contact' | 'how-it-works' | 'why-underrated' | 'success-stories' | 'login' | 'signup' | 'admin-dashboard' | 'profile' | 'chatbot';
+export type Page = 'home' | 'search' | 'college-detail' | 'for-colleges' | 'contact' | 'how-it-works' | 'why-underrated' | 'success-stories' | 'login' | 'signup' | 'admin-dashboard' | 'profile' | 'chatbot' | 'privacy-policy';
 
 export interface SearchParams {
     state?: string;

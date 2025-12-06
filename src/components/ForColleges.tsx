@@ -64,44 +64,38 @@ export function ForColleges({ onNavigate, onBack }: ForCollegesProps) {
 
   const plans = [
     {
-      name: "Basic Listing",
-      price: "₹2,999",
-      period: "/year",
+      name: "Listing + Leads",
+      price: "₹1,999",
+      period: "/Month",
       features: [
-        "College profile page",
-        "Basic course listing",
-        "Contact form access",
-        "Up to 50 enquiries/year",
-        "Email support",
+        "Unlimited student enquiries",
+        "Verified badge",
+        "WhatsApp alerts for enquiries",
       ],
       highlighted: false,
     },
     {
-      name: "Standard",
-      price: "₹4,999",
-      period: "/year",
+      name: "Featured Ranking + Leads + Spotlight",
+      price: "₹3,999",
+      period: "/Month",
       features: [
-        "Everything in Basic",
-        "Featured college badge",
-        "Unlimited enquiries",
-        "Priority listing",
-        "Phone + Email support",
-        "Analytics dashboard (coming soon)",
+        "Ranking boost",
+        "Top 10 visibility",
+        "Spotlight badge",
+        "Leads priority",
       ],
       highlighted: true,
       badge: "Recommended",
     },
     {
-      name: "Premium",
-      price: "₹9,999",
-      period: "/year",
+      name: "Premium Plan",
+      price: "₹5,999",
+      period: "/Month",
       features: [
-        "Everything in Standard",
-        "Top of search results",
-        "Social media promotion",
-        "Dedicated account manager",
-        "Custom branding options",
-        "WhatsApp support",
+        "Guaranteed leads volume",
+        "Audience insights",
+        "Student targeting",
+        "Monthly strategy call",
       ],
       highlighted: false,
     },
@@ -168,73 +162,82 @@ export function ForColleges({ onNavigate, onBack }: ForCollegesProps) {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-gray-900 mb-4">Simple, transparent pricing</h2>
-            <p className="text-gray-600">
-              Choose the plan that works for your college
+      <section className="py-20 md:py-32 bg-slate-50 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-100 rounded-full blur-3xl opacity-50"></div>
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-100 rounded-full blur-3xl opacity-50"></div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 tracking-tight">
+              Simple, transparent pricing
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Choose the plan that fits your growth goals. No hidden fees, cancel anytime.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 items-center">
             {plans.map((plan, index) => (
               <div
                 key={index}
-                className={`rounded-2xl p-8 ${plan.highlighted
-                  ? 'bg-blue-600 text-white shadow-2xl scale-105 relative'
-                  : 'bg-gray-50 text-gray-900'
+                className={`relative rounded-3xl transition-all duration-300 ${plan.highlighted
+                  ? 'bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-2xl scale-105 z-10 ring-1 ring-white/20'
+                  : 'bg-white text-gray-900 shadow-xl hover:shadow-2xl hover:-translate-y-1 border border-gray-100'
                   }`}
               >
                 {plan.badge && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="bg-yellow-400 text-gray-900 px-4 py-1 rounded-full text-sm">
+                  <div className="absolute -top-5 left-1/2 -translate-x-1/2">
+                    <span className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-bold px-6 py-2 rounded-full text-sm shadow-lg tracking-wide uppercase">
                       {plan.badge}
                     </span>
                   </div>
                 )}
 
-                <div className="text-center mb-6">
-                  <h3 className={`mb-4 ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
-                    {plan.name}
-                  </h3>
-                  <div className="flex items-end justify-center mb-2">
-                    <span className={`${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
-                      {plan.price}
-                    </span>
-                    <span className={`text-sm mb-2 ${plan.highlighted ? 'text-blue-100' : 'text-gray-600'}`}>
-                      {plan.period}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="space-y-4 mb-8">
-                  {plan.features.map((feature, idx) => (
-                    <div key={idx} className="flex items-start space-x-3">
-                      <Check
-                        size={20}
-                        className={`flex-shrink-0 mt-0.5 ${plan.highlighted ? 'text-blue-200' : 'text-green-600'
-                          }`}
-                      />
-                      <span className={`text-sm ${plan.highlighted ? 'text-blue-50' : 'text-gray-700'}`}>
-                        {feature}
+                <div className="p-8 md:p-10">
+                  <div className="text-center mb-8">
+                    <h3 className={`text-xl font-semibold mb-4 ${plan.highlighted ? 'text-blue-100' : 'text-gray-600'}`}>
+                      {plan.name}
+                    </h3>
+                    <div className="flex items-baseline justify-center">
+                      <span className={`text-5xl font-bold tracking-tight ${plan.highlighted ? 'text-white' : 'text-gray-900'}`}>
+                        {plan.price}
+                      </span>
+                      <span className={`text-lg ml-2 ${plan.highlighted ? 'text-blue-200' : 'text-gray-500'}`}>
+                        {plan.period}
                       </span>
                     </div>
-                  ))}
-                </div>
+                  </div>
 
-                <button
-                  onClick={() => {
-                    const formSection = document.getElementById('application-form');
-                    formSection?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className={`w-full py-3 rounded-lg transition-colors ${plan.highlighted
-                    ? 'bg-white text-blue-600 hover:bg-gray-100'
-                    : 'bg-blue-600 text-white hover:bg-blue-700'
-                    }`}
-                >
-                  Apply for Listing
-                </button>
+                  <div className="space-y-5 mb-10">
+                    {plan.features.map((feature, idx) => (
+                      <div key={idx} className="flex items-start space-x-4">
+                        <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center mt-0.5 ${plan.highlighted ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-600'
+                          }`}>
+                          <Check size={14} strokeWidth={3} />
+                        </div>
+                        <span className={`text-base ${plan.highlighted ? 'text-blue-50' : 'text-gray-700'}`}>
+                          {feature}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      const formSection = document.getElementById('application-form');
+                      formSection?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className={`w-full py-4 rounded-xl font-semibold text-lg transition-all duration-200 shadow-md hover:shadow-lg ${plan.highlighted
+                      ? 'bg-white text-blue-600 hover:bg-blue-50'
+                      : 'bg-gray-900 text-white hover:bg-gray-800'
+                      }`}
+                  >
+                    Get Started
+                  </button>
+                </div>
               </div>
             ))}
           </div>

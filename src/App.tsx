@@ -12,6 +12,7 @@ import { SignUp } from './components/SignUp';
 import { AdminDashboard } from './components/AdminDashboard';
 import { Profile } from './components/Profile';
 import { ChatBotPage } from './components/ChatBotPage';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { AuthProvider } from './context/AuthContext';
 import { CollegeProvider } from './context/CollegeContext';
 import { LeadProvider } from './context/LeadContext';
@@ -93,6 +94,8 @@ export default function App() {
         return <Profile onNavigate={handleNavigate} onBack={handleBack} />;
       case 'chatbot':
         return <ChatBotPage onNavigate={handleNavigate} onBack={handleBack} />;
+      case 'privacy-policy':
+        return <PrivacyPolicy onNavigate={handleNavigate} onBack={handleBack} />;
       default:
         return <Home onNavigate={handleNavigate} />;
     }
